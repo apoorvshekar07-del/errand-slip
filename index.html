@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#FBF7EE" />
+<title>Errand Slip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FBF7EE;
+    --ink: #2B2622;
+    --terracotta: #C75D3B;
+    --terracotta-dark: #9C4429;
+    --sage: #5B7A6B;
+    --sage-dark: #43594D;
+    --line: #E8DFC9;
+    --line-strong: #D9CCAB;
+    --muted: #8C8170;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    overscroll-behavior-y: contain;
+    height: 100%;
+  }
+  body {
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(199,93,59,0.04), transparent 40%),
+      radial-gradient(circle at 90% 90%, rgba(91,122,107,0.04), transparent 40%);
+  }
+  #app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); padding-top: env(safe-area-inset-top); }
+
+  header.topbar {
+    padding: 18px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    background: var(--paper);
+    z-index: 10;
+  }
+  .brand {
+    font-family: 'Kalam', cursive;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: 0.2px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand .pin {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--terracotta);
+    display: inline-block;
+  }
+  .role-switch {
+    display: flex;
+    gap: 4px;
+    background: var(--line);
+    border-radius: 20px;
+    padding: 3px;
+  }
+  .role-switch button {
+    border: none;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 16px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .role-switch button.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  main { flex: 1; padding: 20px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .scrawl {
+    font-family: 'Kalam', cursive;
+    font-size: 20px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .empty-state p { font-size: 14px; line-height: 1.5; margin: 0; }
+
+  /* MOM VIEW: composer */
+  .composer {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 18px;
+  }
+  .composer label {
+    display: block;
+    font-family: 'Kalam', cursive;
+    font-size: 17px;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .composer textarea {
+    width: 100%;
+    min-height: 110px;
+    border: none;
+    background: repeating-linear-gradient(var(--paper) 0px, var(--paper) 27px, var(--line) 28px);
+    font-family: 'Kalam', cursive;
+    font-size: 17px;
+    line-height: 28px;
+    padding: 4px 2px 0 2px;
+    resize: vertical;
+    outline: none;
+    color: var(--ink);
+  }
+  .composer textarea::placeholder { color: #B9AE96; }
+  .composer-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .btn {
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--terracotta); color: #fff; width: 100%; margin-top: 12px; }
+  .btn-primary:hover { background: var(--terracotta-dark); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line-strong); }
+
+  .lists-header {
+    font-family: 'Kalam', cursive;
+    font-size: 18px;
+    color: var(--ink);
+    margin: 24px 0 10px;
+  }
+
+  /* shared list cards */
+  .list-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .list-card-head {
+    padding: 14px 16px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    cursor: pointer;
+  }
+  .list-card-title {
+    font-family: 'Kalam', cursive;
+    font-size: 18px;
+  }
+  .list-card-meta {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+  }
+  .item-row.checked { opacity: 0.45; }
+  .item-row.checked .item-name { text-decoration: line-through; }
+  .checkbox {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--line-strong);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .checkbox.on {
+    background: var(--terracotta);
+    border-color: var(--terracotta);
+  }
+  .checkbox.on::after {
+    content: '✓';
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .item-body { flex: 1; min-width: 0; }
+  .item-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .item-qty {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  .item-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--sage-dark);
+    background: rgba(91,122,107,0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .item-orig {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .progress-bar {
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 6px;
+    width: 100px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--sage);
+    transition: width 0.3s ease;
+  }
+
+  .install-hint {
+    margin: 18px 0 0;
+    padding: 12px 14px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 10px;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .install-hint strong { color: var(--ink); }
+
+  .type-switch {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .type-switch button {
+    flex: 1;
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    border-radius: 8px;
+    padding: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .type-switch button.active {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .field-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .field-row > div { flex: 1; }
+  .field-row label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-family: 'Inter', sans-serif;
+  }
+  .field-row input[type="text"],
+  .field-row input[type="date"],
+  .field-row input[type="time"] {
+    width: 100%;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    background: #fff;
+    color: var(--ink);
+  }
+  .task-input {
+    width: 100%;
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'Kalam', cursive;
+    font-size: 17px;
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+  }
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 5px;
+    text-transform: lowercase;
+  }
+  .type-badge.grocery { background: rgba(199,93,59,0.12); color: var(--terracotta-dark); }
+  .type-badge.task { background: rgba(91,122,107,0.12); color: var(--sage-dark); }
+  .due-badge {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .due-badge.overdue { color: var(--terracotta-dark); font-weight: 600; }
+  .task-meta-line {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .task-meta-line span { display: inline-flex; align-items: center; gap: 3px; }
+  .danger-zone {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .btn-danger {
+    background: transparent;
+    color: var(--terracotta-dark);
+    border: 1px solid var(--terracotta);
+    width: 100%;
+  }
+  .confirm-bar {
+    background: rgba(199,93,59,0.08);
+    border: 1px solid var(--terracotta);
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .confirm-bar .confirm-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .confirm-bar .confirm-actions button { flex: 1; }
+
+  .urgent-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 10px;
+    cursor: pointer;
+  }
+  .urgent-toggle input { width: 16px; height: 16px; accent-color: var(--terracotta); }
+  .urgent-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--terracotta-dark);
+    background: rgba(199,93,59,0.14);
+    padding: 2px 8px;
+    border-radius: 5px;
+    margin-left: 6px;
+  }
+  .list-card.is-urgent {
+    border-color: var(--terracotta);
+    box-shadow: 0 0 0 1px rgba(199,93,59,0.25);
+  }
+  .notif-banner {
+    background: #fff;
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .notif-banner button {
+    flex-shrink: 0;
+    border: none;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 18px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.25s ease;
+    pointer-events: none;
+    z-index: 50;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #1C1A16;
+      --ink: #EFE9DC;
+      --line: #34302A;
+      --line-strong: #45413A;
+      --muted: #9B9384;
+    }
+    .composer textarea { background: repeating-linear-gradient(var(--paper) 0px, var(--paper) 27px, var(--line) 28px); }
+    .list-card, .composer { background: #242019; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><span class="pin"></span>errand slip</div>
+    <div class="role-switch" id="roleSwitch">
+      <button data-role="mom" id="momBtn">mom</button>
+      <button data-role="runner" id="runnerBtn" class="active">me</button>
+    </div>
+  </header>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot,
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCYwPfYrqITJH8R8lnJOlsY89_MXNw4U_E",
+  authDomain: "errand-slip.firebaseapp.com",
+  projectId: "errand-slip",
+  storageBucket: "errand-slip.firebasestorage.app",
+  messagingSenderId: "190094891429",
+  appId: "1:190094891429:web:475827299ff5cc21f3f04c",
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+// All errands live in a single document — simplest possible shape for a
+// two-person household app. If this ever grows past one family, this is
+// the first thing that'd need to become per-household documents instead.
+const ERRANDS_DOC = doc(db, "household", "main");
+// ---------- Grocery knowledge base (rule-based, no AI cost) ----------
+const GROCERY_KB = {
+  "milk": { qty: "1", unit: "gallon", clarify: "Whole, 2%, or skim?", category: "Dairy" },
+  "eggs": { qty: "1", unit: "dozen", clarify: null, category: "Dairy" },
+  "butter": { qty: "1", unit: "stick/block", clarify: "Salted or unsalted?", category: "Dairy" },
+  "cheese": { qty: "8 oz", unit: "", clarify: "What kind? (cheddar, mozzarella, etc.)", category: "Dairy" },
+  "parmesan": { qty: "1 small container", unit: "", clarify: null, category: "Dairy" },
+  "yogurt": { qty: "1 (32oz tub or check for cups)", unit: "", clarify: "Plain or flavored?", category: "Dairy" },
+  "sour cream": { qty: "1 (8oz)", unit: "", clarify: null, category: "Dairy" },
+  "cream cheese": { qty: "1 (8oz block)", unit: "", clarify: null, category: "Dairy" },
+  "garlic": { qty: "1 head", unit: "", clarify: null, category: "Produce" },
+  "onion": { qty: "2 medium", unit: "", clarify: "Yellow, white, or red?", category: "Produce" },
+  "onions": { qty: "2 medium", unit: "", clarify: "Yellow, white, or red?", category: "Produce" },
+  "potatoes": { qty: "1 (5lb bag)", unit: "", clarify: "Russet for baking, or other?", category: "Produce" },
+  "tomatoes": { qty: "4 medium", unit: "", clarify: null, category: "Produce" },
+  "lettuce": { qty: "1 head", unit: "", clarify: "Romaine, iceberg, or other?", category: "Produce" },
+  "apples": { qty: "6", unit: "", clarify: "Any particular variety?", category: "Produce" },
+  "bananas": { qty: "1 bunch", unit: "", clarify: null, category: "Produce" },
+  "lemon": { qty: "2", unit: "", clarify: null, category: "Produce" },
+  "lemons": { qty: "2", unit: "", clarify: null, category: "Produce" },
+  "limes": { qty: "3", unit: "", clarify: null, category: "Produce" },
+  "avocado": { qty: "3", unit: "", clarify: null, category: "Produce" },
+  "avocados": { qty: "3", unit: "", clarify: null, category: "Produce" },
+  "carrots": { qty: "1 (lb bag)", unit: "", clarify: null, category: "Produce" },
+  "celery": { qty: "1 bunch", unit: "", clarify: null, category: "Produce" },
+  "bell pepper": { qty: "2", unit: "", clarify: "What color?", category: "Produce" },
+  "spinach": { qty: "1 bag (5oz)", unit: "", clarify: null, category: "Produce" },
+  "broccoli": { qty: "1 head/bag", unit: "", clarify: null, category: "Produce" },
+  "cilantro": { qty: "1 bunch", unit: "", clarify: null, category: "Produce" },
+  "ground beef": { qty: "1 lb", unit: "", clarify: "Any fat % she usually gets? (80/20 is common)", category: "Meat" },
+  "chicken breast": { qty: "1.5 lb", unit: "", clarify: null, category: "Meat" },
+  "chicken thighs": { qty: "1.5 lb", unit: "", clarify: null, category: "Meat" },
+  "chicken": { qty: "1.5 lb", unit: "", clarify: "What cut — breast, thighs, whole?", category: "Meat" },
+  "bacon": { qty: "1 package (12oz)", unit: "", clarify: null, category: "Meat" },
+  "sausage": { qty: "1 package", unit: "", clarify: "What kind?", category: "Meat" },
+  "pasta": { qty: "1 box (16oz)", unit: "", clarify: "Any specific shape?", category: "Pantry" },
+  "spaghetti": { qty: "1 box (16oz)", unit: "", clarify: null, category: "Pantry" },
+  "rice": { qty: "1 bag (2lb)", unit: "", clarify: "White, brown, jasmine?", category: "Pantry" },
+  "bread": { qty: "1 loaf", unit: "", clarify: "Any specific kind?", category: "Pantry" },
+  "flour": { qty: "1 bag (5lb)", unit: "", clarify: null, category: "Pantry" },
+  "sugar": { qty: "1 bag (4lb)", unit: "", clarify: null, category: "Pantry" },
+  "pasta sauce": { qty: "1 jar (24oz)", unit: "", clarify: null, category: "Pantry" },
+  "tomato sauce": { qty: "1 jar (24oz)", unit: "", clarify: null, category: "Pantry" },
+  "crushed tomatoes": { qty: "1 can (28oz)", unit: "", clarify: null, category: "Pantry" },
+  "olive oil": { qty: "1 bottle", unit: "", clarify: null, category: "Pantry" },
+  "cereal": { qty: "1 box", unit: "", clarify: "Which kind does she usually get?", category: "Pantry" },
+  "peanut butter": { qty: "1 jar", unit: "", clarify: "Creamy or crunchy?", category: "Pantry" },
+  "coffee": { qty: "1 bag/can", unit: "", clarify: "Ground or whole bean? Any brand?", category: "Pantry" },
+  "paper towels": { qty: "1 pack", unit: "", clarify: null, category: "Household" },
+  "toilet paper": { qty: "1 pack", unit: "", clarify: null, category: "Household" },
+  "dish soap": { qty: "1 bottle", unit: "", clarify: null, category: "Household" },
+  "laundry detergent": { qty: "1 bottle", unit: "", clarify: null, category: "Household" },
+  "trash bags": { qty: "1 box", unit: "", clarify: "What size?", category: "Household" },
+};
+
+function normalizeItemText(raw) {
+  return raw
+    .toLowerCase()
+    .replace(/[0-9]+(\.[0-9]+)?/g, "")
+    .replace(/[-,.()]/g, " ")
+    .replace(/\b(a|an|the|some|of|lb|lbs|oz|bag|box|can|jar|bottle|pack|dozen|gallon|head|bunch|please|need|get)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function lookupGroceryItem(rawText) {
+  const normalized = normalizeItemText(rawText);
+  if (!normalized) return null;
+  if (GROCERY_KB[normalized]) return GROCERY_KB[normalized];
+  const stripped = normalized.endsWith("s") ? normalized.slice(0, -1) : normalized + "s";
+  if (GROCERY_KB[stripped]) return GROCERY_KB[stripped];
+  const keys = Object.keys(GROCERY_KB);
+  const found = keys.find(k => normalized.includes(k) || k.includes(normalized));
+  if (found) return GROCERY_KB[found];
+  return null;
+}
+
+function expandLine(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const match = lookupGroceryItem(trimmed);
+  return {
+    id: 'item_' + Math.random().toString(36).slice(2, 10),
+    raw: trimmed,
+    name: trimmed.replace(/^[-*\u2022]\s*/, ''),
+    qty: match ? match.qty : null,
+    clarify: match ? match.clarify : null,
+    category: match ? match.category : null,
+    recognized: !!match,
+    checked: false,
+  };
+}
+
+// ---------- Storage (Firestore) ----------
+async function loadErrands() {
+  try {
+    const snap = await getDoc(ERRANDS_DOC);
+    if (!snap.exists()) return []; // brand new household doc, genuinely empty
+    const data = snap.data();
+    return Array.isArray(data.errands) ? data.errands : [];
+  } catch (e) {
+    console.error('load failed', e);
+    return null; // caller decides whether this means "empty" or "load failed"
+  }
+}
+
+async function saveErrands(errandsToSave, attempt = 1) {
+  try {
+    await setDoc(ERRANDS_DOC, { errands: errandsToSave, updatedAt: Date.now() });
+    return true;
+  } catch (e) {
+    console.error('save failed (attempt ' + attempt + ')', e);
+    if (attempt < 3) {
+      // Brief backoff then retry once or twice — covers transient network
+      // blips or Firestore hiccups.
+      await new Promise(r => setTimeout(r, attempt * 600));
+      return saveErrands(errandsToSave, attempt + 1);
+    }
+    // All retries exhausted — don't fail silently. The person needs to know
+    // their tap didn't actually save, or the UI will quietly drift from
+    // what's stored and "un-check" things on the next sync.
+    showToast("couldn't save — check connection and try again", 3500);
+    return false;
+  }
+}
+
+// Realtime listener — Firestore pushes changes instantly instead of us
+// polling every few seconds. Wired up at the bottom of this script, after
+// `errands`/`render`/etc. are all defined.
+function listenForErrandChanges(onChange) {
+  return onSnapshot(ERRANDS_DOC, (snap) => {
+    if (!snap.exists()) { onChange([]); return; }
+    const data = snap.data();
+    onChange(Array.isArray(data.errands) ? data.errands : []);
+  }, (err) => {
+    console.error('realtime listener error', err);
+  });
+}
+
+// ---------- State ----------
+let role = 'runner';
+let errands = [];
+let expandedErrandId = null;
+let momDraftText = ''; // preserves what mom is typing (grocery textarea) across background refreshes
+let groceryDueDateDraft = ''; // preserves grocery composer's "for which day" field
+let groceryUrgentDraft = false;
+let momTaskDraft = { title: '', dueDate: '', dueTime: '', location: '', urgent: false }; // preserves task composer fields
+let composerType = 'grocery'; // which composer tab mom currently has open
+let savingInFlight = false; // true while a checkbox tap is mid-save, so polling doesn't race it
+let confirmingDeleteAll = false;
+let notifiedErrandIds = new Set(); // errand ids we've already fired a notification for this session
+let notifPermission = (typeof Notification !== 'undefined') ? Notification.permission : 'unsupported';
+
+function showToast(msg, durationMs = 1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(() => t.classList.remove('show'), durationMs);
+}
+
+function fireNotificationsForNewUrgentErrands(previousErrands, newErrands) {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  const previousIds = new Set(previousErrands.map(e => e.id));
+  newErrands.forEach(errand => {
+    if (!errand.urgent) return;
+    if (previousIds.has(errand.id)) return; // not new
+    if (notifiedErrandIds.has(errand.id)) return; // already notified this session
+    notifiedErrandIds.add(errand.id);
+    const body = errand.type === 'grocery'
+      ? `grocery list: ${errand.title}`
+      : errand.title;
+    try {
+      new Notification('mom sent an urgent errand', { body, tag: errand.id });
+    } catch (e) {
+      console.error('notification failed', e);
+    }
+  });
+}
+
+function applyIncomingErrands(newErrands) {
+  const active = document.activeElement;
+  const isTypingInComposer = active && (
+    active.id === 'newListText' ||
+    active.id === 'groceryDueDate' ||
+    active.id === 'taskTitleInput' ||
+    active.id === 'taskLocationInput' ||
+    active.id === 'taskDateInput' ||
+    active.id === 'taskTimeInput'
+  );
+  if (isTypingInComposer || savingInFlight) return; // never redraw out from under an active keystroke or in-flight save
+
+  const previous = errands;
+  errands = newErrands;
+  if (role === 'runner') fireNotificationsForNewUrgentErrands(previous, errands);
+  render();
+}
+
+function render() {
+  const main = document.getElementById('main');
+  document.getElementById('momBtn').classList.toggle('active', role === 'mom');
+  document.getElementById('runnerBtn').classList.toggle('active', role === 'runner');
+
+  if (role === 'mom') {
+    main.innerHTML = renderMomView();
+    wireMomView();
+  } else {
+    main.innerHTML = renderRunnerView();
+    wireRunnerView();
+  }
+}
+
+function renderMomView() {
+  const groceryComposer = `
+    <label>what do you need from the store?</label>
+    <textarea id="newListText" placeholder="spaghetti stuff for the week
+2 onions
+paper towels">${escapeHtml(momDraftText)}</textarea>
+    <div class="composer-hint">type loosely, one thing per line — quantities and notes get filled in automatically where we recognize the item.</div>
+    <div class="field-row">
+      <div>
+        <label>for which day (optional)</label>
+        <input type="date" id="groceryDueDate" value="${escapeHtml(groceryDueDateDraft)}" />
+      </div>
+    </div>
+    <label class="urgent-toggle"><input type="checkbox" id="groceryUrgentCheck" ${groceryUrgentDraft ? 'checked' : ''} /> mark urgent — pings the runner</label>
+    <button class="btn btn-primary" id="sendListBtn">send list</button>
+  `;
+
+  const taskComposer = `
+    <label>what's the errand?</label>
+    <input type="text" id="taskTitleInput" class="task-input" placeholder="mow the lawn, pick up Timmy from practice..." value="${escapeHtml(momTaskDraft.title)}" />
+    <div class="field-row">
+      <div>
+        <label>day</label>
+        <input type="date" id="taskDateInput" value="${escapeHtml(momTaskDraft.dueDate)}" />
+      </div>
+      <div>
+        <label>time (optional)</label>
+        <input type="time" id="taskTimeInput" value="${escapeHtml(momTaskDraft.dueTime)}" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <label>location (optional)</label>
+        <input type="text" id="taskLocationInput" placeholder="school, soccer field..." value="${escapeHtml(momTaskDraft.location)}" />
+      </div>
+    </div>
+    <label class="urgent-toggle"><input type="checkbox" id="taskUrgentCheck" ${momTaskDraft.urgent ? 'checked' : ''} /> mark urgent — pings the runner</label>
+    <button class="btn btn-primary" id="sendTaskBtn">send errand</button>
+  `;
+
+  let html = `
+    <div class="composer">
+      <div class="type-switch">
+        <button data-composer="grocery" class="${composerType === 'grocery' ? 'active' : ''}">grocery list</button>
+        <button data-composer="task" class="${composerType === 'task' ? 'active' : ''}">quick errand</button>
+      </div>
+      ${composerType === 'grocery' ? groceryComposer : taskComposer}
+    </div>
+  `;
+
+  if (errands.length > 0) {
+    html += `<div class="lists-header">sent errands</div>`;
+    html += errands.slice().reverse().map(e => renderErrandCard(e, true)).join('');
+    html += `
+      <div class="danger-zone">
+        ${confirmingDeleteAll ? `
+          <div class="confirm-bar">
+            this deletes every errand for both of you, permanently. sure?
+            <div class="confirm-actions">
+              <button class="btn btn-ghost" id="cancelDeleteAllBtn">cancel</button>
+              <button class="btn btn-danger" id="confirmDeleteAllBtn">yes, delete all</button>
+            </div>
+          </div>
+        ` : `
+          <button class="btn btn-danger" id="deleteAllBtn">delete all errands</button>
+        `}
+      </div>
+    `;
+  }
+  return html;
+}
+
+function renderRunnerView() {
+  if (errands.length === 0) {
+    return `
+      <div class="empty-state">
+        <div class="scrawl">no errands yet</div>
+        <p>switch to "mom" up top to send the first one, or wait for it to show up here.</p>
+      </div>
+    `;
+  }
+  // Urgent errands always float to the top. Within each group, soonest-due
+  // first, so the thing you should be doing right now sits near the top.
+  const sorted = errands.slice().sort((a, b) => {
+    if (!!a.urgent !== !!b.urgent) return a.urgent ? -1 : 1;
+    const aDue = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+    const bDue = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+    if (aDue !== bDue) return aDue - bDue;
+    return b.createdAt - a.createdAt;
+  });
+
+  let banner = '';
+  if (notifPermission === 'default') {
+    banner = `
+      <div class="notif-banner">
+        <span>turn on notifications so you know the moment mom sends something urgent.</span>
+        <button id="enableNotifBtn">turn on</button>
+      </div>
+    `;
+  }
+
+  return banner + sorted.map(e => renderErrandCard(e, false)).join('') + `
+    <div class="install-hint">
+      <strong>tip:</strong> open this page on your phone, then use your browser's "add to home screen" option — it'll feel like a real app icon, no app store needed.
+    </div>
+  `;
+}
+
+function formatDueDate(dueDate, dueTime) {
+  if (!dueDate) return null;
+  const d = new Date(dueDate + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((d - today) / 86400000);
+  let label;
+  if (diffDays === 0) label = 'today';
+  else if (diffDays === 1) label = 'tomorrow';
+  else if (diffDays === -1) label = 'yesterday';
+  else if (diffDays < 0) label = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' (overdue)';
+  else label = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  if (dueTime) {
+    const [h, m] = dueTime.split(':');
+    const t = new Date();
+    t.setHours(+h, +m);
+    label += ' · ' + t.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+  return { label, overdue: diffDays < 0 };
+}
+
+function renderErrandCard(errand, isMomView) {
+  if (errand.type === 'task') return renderTaskCard(errand, isMomView);
+  return renderGroceryCard(errand, isMomView);
+}
+
+function renderTaskCard(errand, isMomView) {
+  const due = formatDueDate(errand.dueDate, errand.dueTime);
+  return `
+    <div class="list-card ${errand.urgent ? 'is-urgent' : ''}" data-errand-id="${errand.id}">
+      <div class="item-row" style="border-top:none;">
+        ${!isMomView ? `<div class="checkbox ${errand.completed ? 'on' : ''}" data-action="toggle-task" data-errand-id="${errand.id}"></div>` : `<div class="checkbox" style="opacity:0.25;pointer-events:none;"></div>`}
+        <div class="item-body">
+          <span class="type-badge task">errand</span>${errand.urgent ? `<span class="urgent-badge">urgent</span>` : ''}
+          <div class="item-name" style="margin-top:4px; ${errand.completed ? 'text-decoration:line-through;opacity:0.5;' : ''}">${escapeHtml(errand.title)}</div>
+          <div class="task-meta-line">
+            ${due ? `<span class="due-badge ${due.overdue ? 'overdue' : ''}"><i>📅</i> ${due.label}</span>` : ''}
+            ${errand.location ? `<span>📍 ${escapeHtml(errand.location)}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderGroceryCard(list, isMomView) {
+  const total = list.items.length;
+  const done = list.items.filter(i => i.checked).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const due = formatDueDate(list.dueDate, null);
+  // Runner needs to see and tap items on the list they're actively shopping —
+  // never hide checkboxes behind a collapse. Mom's view collapses older lists
+  // to keep her screen from filling with every list she's ever sent.
+  const isOpen = !isMomView || expandedErrandId === list.id || errands.length === 1;
+
+  const itemsHtml = list.items.map(item => `
+    <div class="item-row ${item.checked ? 'checked' : ''}" data-item-id="${item.id}" data-list-id="${list.id}">
+      ${!isMomView ? `<div class="checkbox ${item.checked ? 'on' : ''}" data-action="toggle" data-item-id="${item.id}" data-list-id="${list.id}"></div>` : `<div class="checkbox" style="opacity:0.25;pointer-events:none;"></div>`}
+      <div class="item-body">
+        <div class="item-name">${escapeHtml(item.name)}</div>
+        ${item.qty ? `<div class="item-qty">${escapeHtml(item.qty)}</div>` : ''}
+        ${item.clarify ? `<div class="item-flag"><span>?</span> ${escapeHtml(item.clarify)}</div>` : ''}
+        ${!item.recognized ? `<div class="item-orig">not in our list yet — just get your best guess, or text mom</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="list-card ${list.urgent ? 'is-urgent' : ''}" data-errand-id="${list.id}">
+      <div class="list-card-head" data-toggle-list="${list.id}" ${!isMomView ? 'style="cursor:default;pointer-events:none;"' : ''}>
+        <div>
+          <span class="type-badge grocery">groceries</span>${list.urgent ? `<span class="urgent-badge">urgent</span>` : ''}
+          <div class="list-card-title">${escapeHtml(list.title)}</div>
+          <div class="list-card-meta">${done}/${total} done · ${timeAgo(list.createdAt)}${due ? ` · <span class="${due.overdue ? 'overdue' : ''}">${due.label}</span>` : ''}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>
+      ${isOpen ? itemsHtml : ''}
+    </div>
+  `;
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  return Math.floor(hrs / 24) + 'd ago';
+}
+
+function wireMomView() {
+  document.querySelectorAll('[data-composer]').forEach(btn => {
+    btn.onclick = () => { composerType = btn.dataset.composer; render(); };
+  });
+
+  if (composerType === 'grocery') {
+    const textarea = document.getElementById('newListText');
+    const dueInput = document.getElementById('groceryDueDate');
+    const urgentCheck = document.getElementById('groceryUrgentCheck');
+    textarea.oninput = () => { momDraftText = textarea.value; };
+    dueInput.oninput = () => { groceryDueDateDraft = dueInput.value; };
+    urgentCheck.onchange = () => { groceryUrgentDraft = urgentCheck.checked; };
+
+    document.getElementById('sendListBtn').onclick = async () => {
+      const lines = textarea.value.split('\n').map(l => l.trim()).filter(Boolean);
+      if (lines.length === 0) return;
+      const items = lines.map(expandLine).filter(Boolean);
+      const newErrand = {
+        id: 'errand_' + Math.random().toString(36).slice(2, 10),
+        type: 'grocery',
+        title: guessTitle(items),
+        createdAt: Date.now(),
+        dueDate: dueInput.value || null,
+        urgent: urgentCheck.checked,
+        items,
+      };
+      errands.push(newErrand);
+      const ok = await saveErrands(errands);
+      if (!ok) {
+        errands.pop(); // don't leave an unsaved errand sitting in memory only
+        render();
+        return;
+      }
+      momDraftText = '';
+      groceryDueDateDraft = '';
+      groceryUrgentDraft = false;
+      showToast('list sent');
+      render();
+    };
+  } else {
+    const titleInput = document.getElementById('taskTitleInput');
+    const dateInput = document.getElementById('taskDateInput');
+    const timeInput = document.getElementById('taskTimeInput');
+    const locInput = document.getElementById('taskLocationInput');
+    const urgentCheck = document.getElementById('taskUrgentCheck');
+    titleInput.oninput = () => { momTaskDraft.title = titleInput.value; };
+    dateInput.oninput = () => { momTaskDraft.dueDate = dateInput.value; };
+    timeInput.oninput = () => { momTaskDraft.dueTime = timeInput.value; };
+    locInput.oninput = () => { momTaskDraft.location = locInput.value; };
+    urgentCheck.onchange = () => { momTaskDraft.urgent = urgentCheck.checked; };
+
+    document.getElementById('sendTaskBtn').onclick = async () => {
+      const title = titleInput.value.trim();
+      if (!title) return;
+      const newErrand = {
+        id: 'errand_' + Math.random().toString(36).slice(2, 10),
+        type: 'task',
+        title,
+        createdAt: Date.now(),
+        dueDate: dateInput.value || null,
+        dueTime: timeInput.value || null,
+        location: locInput.value.trim() || null,
+        urgent: urgentCheck.checked,
+        completed: false,
+      };
+      errands.push(newErrand);
+      const ok = await saveErrands(errands);
+      if (!ok) {
+        errands.pop();
+        render();
+        return;
+      }
+      momTaskDraft = { title: '', dueDate: '', dueTime: '', location: '', urgent: false };
+      showToast('errand sent');
+      render();
+    };
+  }
+
+  const deleteBtn = document.getElementById('deleteAllBtn');
+  if (deleteBtn) deleteBtn.onclick = () => { confirmingDeleteAll = true; render(); };
+  const cancelBtn = document.getElementById('cancelDeleteAllBtn');
+  if (cancelBtn) cancelBtn.onclick = () => { confirmingDeleteAll = false; render(); };
+  const confirmBtn = document.getElementById('confirmDeleteAllBtn');
+  if (confirmBtn) confirmBtn.onclick = async () => {
+    const backup = errands;
+    errands = [];
+    const ok = await saveErrands(errands);
+    confirmingDeleteAll = false;
+    if (!ok) {
+      errands = backup; // deletion didn't actually persist — don't pretend it worked
+      render();
+      return;
+    }
+    showToast('all errands deleted');
+    render();
+  };
+
+  wireListToggles();
+}
+
+function wireRunnerView() {
+  wireListToggles();
+  const enableBtn = document.getElementById('enableNotifBtn');
+  if (enableBtn) {
+    enableBtn.onclick = async () => {
+      if (typeof Notification === 'undefined') {
+        showToast('notifications not supported on this browser');
+        return;
+      }
+      const result = await Notification.requestPermission();
+      notifPermission = result;
+      if (result === 'granted') showToast('notifications on');
+      render();
+    };
+  }
+  document.querySelectorAll('.checkbox[data-action="toggle"]').forEach(cb => {
+    cb.onclick = async (e) => {
+      const target = e.currentTarget;
+      const listId = target.dataset.listId;
+      const itemId = target.dataset.itemId;
+      const list = errands.find(l => l.id === listId);
+      if (!list) return;
+      const item = list.items.find(i => i.id === itemId);
+      if (!item) return;
+
+      // Flip state and reflect it on screen immediately so a tap never
+      // feels like it "didn't register" while the save is in flight.
+      item.checked = !item.checked;
+      target.classList.toggle('on', item.checked);
+      target.closest('.item-row').classList.toggle('checked', item.checked);
+
+      savingInFlight = true;
+      const ok = await saveErrands(errands);
+      savingInFlight = false;
+      if (!ok) {
+        // Save never landed — revert so the screen matches what's actually
+        // stored, instead of showing a checked box that isn't real.
+        item.checked = !item.checked;
+        target.classList.toggle('on', item.checked);
+        target.closest('.item-row').classList.toggle('checked', item.checked);
+      }
+    };
+  });
+  document.querySelectorAll('.checkbox[data-action="toggle-task"]').forEach(cb => {
+    cb.onclick = async (e) => {
+      const target = e.currentTarget;
+      const errandId = target.dataset.errandId;
+      const errand = errands.find(er => er.id === errandId);
+      if (!errand) return;
+
+      errand.completed = !errand.completed;
+      target.classList.toggle('on', errand.completed);
+      const nameEl = target.closest('.item-row').querySelector('.item-name');
+      nameEl.style.textDecoration = errand.completed ? 'line-through' : 'none';
+      nameEl.style.opacity = errand.completed ? '0.5' : '1';
+
+      savingInFlight = true;
+      const ok = await saveErrands(errands);
+      savingInFlight = false;
+      if (!ok) {
+        errand.completed = !errand.completed;
+        target.classList.toggle('on', errand.completed);
+        nameEl.style.textDecoration = errand.completed ? 'line-through' : 'none';
+        nameEl.style.opacity = errand.completed ? '0.5' : '1';
+      }
+    };
+  });
+}
+
+function wireListToggles() {
+  document.querySelectorAll('[data-toggle-list]').forEach(el => {
+    el.onclick = (e) => {
+      if (e.target.closest('.checkbox')) return;
+      const id = el.dataset.toggleList;
+      expandedErrandId = expandedErrandId === id ? null : id;
+      render();
+    };
+  });
+}
+
+function guessTitle(items) {
+  if (items.length === 0) return 'errand list';
+  const names = items.slice(0, 2).map(i => i.name);
+  return names.join(', ') + (items.length > 2 ? '...' : '');
+}
+
+// ---------- Init ----------
+document.getElementById('momBtn').onclick = () => { role = 'mom'; render(); };
+document.getElementById('runnerBtn').onclick = () => { role = 'runner'; render(); };
+
+(async () => {
+  const result = await loadErrands();
+  errands = result || [];
+  render();
+  // Firestore pushes updates the moment they happen — no polling interval needed.
+  listenForErrandChanges(applyIncomingErrands);
+})();
+</script>
+</body>
+</html>
